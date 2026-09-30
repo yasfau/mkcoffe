@@ -3,7 +3,11 @@ import postgres from "postgres";
 import * as schema from "./schema";
 
 const url = process.env.DATABASE_URL;
-if (!url) throw new Error("DATABASE_URL belum diisi di .env.local");
+if (!url) {
+  throw new Error(
+    "DATABASE_URL belum diisi. Lokal: isi di .env.local. Vercel: Settings → Environment Variables, lalu Redeploy."
+  );
+}
 
 // Satu koneksi dipakai ulang saat hot-reload di development,
 // tapi dibuat ulang jika DATABASE_URL berubah
