@@ -30,6 +30,7 @@ export const orders = pgTable(
   {
     id: serial("id").primaryKey(),
     customerName: text("customer_name").notNull(),
+    customerPhone: text("customer_phone"), // WhatsApp, format 628xxx (null untuk pesanan lama)
     location: text("location").notNull(), // lokasi / departemen
     baristaId: integer("barista_id").references(() => baristas.id, { onDelete: "set null" }),
     baristaName: text("barista_name"), // snapshot; null = barista siapa saja

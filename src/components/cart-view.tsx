@@ -24,7 +24,28 @@ async function syncPrices(): Promise<string | null> {
   return messages.length ? messages.join(" ") : null;
 }
 
-export type BaristaOption = { id: number; name: string; specialty: string | null };
+/** Data pemesan diingat di browser agar tidak perlu diketik ulang di pesanan berikutnya. */
+type SavedCustomer = { customerName: string; customerPhone: string; location: string };
+const CUSTOMER_KEY = "mkcoffe-customer";
+
+function loadCustomer(): SavedCustomer | null {
+  try {
+    if (typeof window === "undefined") return null;
+    return JSON.parse(localStorage.getItem(CUSTOMER_KEY) ?? "null");
+  } catch {
+    return null;
+  }
+}
+
+function saveCustomer(customer: SavedCustomer) {
+  try {
+    localStorage.setItem(CUSTOMER_KEY, JSON.stringify(customer));
+  } catch {
+    // localStorage tidak tersedia (mode privat, dsb.) — abaikan
+  }
+}
+
+export type BaristaOption ={ id: number; name: string; specialty: string | null };
 
 export function CartView({ baristas }: { baristas: BaristaOption[] }) {
   const { items, setQuantity, clear } = useCart();
@@ -33,6 +54,8 @@ export function CartView({ baristas }: { baristas: BaristaOption[] }) {
   const [pending, startTransition] = useTransition();
   const [submitted, setSubmitted] = useState(false);
   const [baristaId, setBaristaId] = useState(""); // "" = siapa saja
+  // Form baru dirender setelah hydrated (di browser), jadi aman membaca localStorage di sini
+  const [savedCustomer] = useState(loadCustomer);
   const hydrated = useCartHydrated();
   const [notice, setNotice] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(true);
@@ -60,12 +83,19 @@ export function CartView({ baristas }: { baristas: BaristaOption[] }) {
     );
   }
 
-  function handleSubmit(formData: FormData) {
+  // onSubmit (bukan form action) agar isian tidak dikosongkan React saat pesanan ditolak
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const customer: SavedCustomer = {
+      customerName: String(formData.get("customerName") ?? ""),
+      customerPhone: String(formData.get("customerPhone") ?? ""),
+      location: String(formData.get("location") ?? ""),
+    };
     setError(null);
     startTransition(async () => {
       const result = await createOrder({
-        customerName: String(formData.get("customerName") ?? ""),
-        location: String(formData.get("location") ?? ""),
+        ...customer,
         baristaId: formData.get("baristaId") ? Number(formData.get("baristaId")) : null,
         note: String(formData.get("note") ?? "") || undefined,
         items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
@@ -76,6 +106,7 @@ export function CartView({ baristas }: { baristas: BaristaOption[] }) {
         setError(result.error);
         return;
       }
+      saveCustomer(customer);
       setSubmitted(true);
       clear();
       router.push(`/success?id=${result.orderId}`);
@@ -104,18 +135,47 @@ export function CartView({ baristas }: { baristas: BaristaOption[] }) {
         </li>
       </ul>
 
-      <form action={handleSubmit} className="space-y-4 rounded-2xl bg-white p-5 shadow-sm">
+      <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold">Data Pemesan</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-stone-700">Nama</span>
-            <input name="customerName" required maxLength={50} className={input} placeholder="Nama kamu" />
+            <input
+              name="customerName"
+              required
+              maxLength={50}
+              defaultValue={savedCustomer?.customerName}
+              className={input}
+              placeholder="Nama kamu"
+            />
           </label>
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-stone-700">Lokasi / Dept</span>
-            <input name="location" required maxLength={50} className={input} placeholder="Contoh: Keuangan lt. 2" />
+            <input
+              name="location"
+              required
+              maxLength={50}
+              defaultValue={savedCustomer?.location}
+              className={input}
+              placeholder="Contoh: Keuangan lt. 2"
+            />
           </label>
         </div>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium text-stone-700">No. WhatsApp</span>
+          <input
+            name="customerPhone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            required
+            maxLength={20}
+            defaultValue={savedCustomer?.customerPhone}
+            className={input}
+            placeholder="0812 3456 7890"
+          />
+          <span className="mt-1 block text-xs text-stone-500">Kami kabari lewat WhatsApp saat pesananmu siap diambil.</span>
+        </label>
         {baristas.length > 0 && (
           <fieldset>
             <legend className="mb-2 text-sm font-medium text-stone-700">Pilih Barista</legend>

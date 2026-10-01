@@ -35,7 +35,8 @@ CREATE TABLE public.baristas (
 CREATE TABLE public.orders (
   id            serial PRIMARY KEY,
   customer_name text NOT NULL,
-  location      text NOT NULL,                   -- lokasi / departemen
+  customer_phone text,                           -- WhatsApp, format 628xxxxxxxxxx
+  location     text NOT NULL,                   -- lokasi / departemen
   barista_id    integer REFERENCES public.baristas (id) ON DELETE SET NULL,
   barista_name  text,                            -- salinan nama; null = barista siapa saja
   note          text,

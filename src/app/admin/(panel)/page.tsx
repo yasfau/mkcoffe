@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { orderItems, orders } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { formatTime, rupiah } from "@/lib/format";
+import { formatPhone, waLink } from "@/lib/phone";
 import { STATUS_COLOR, STATUS_LABEL } from "@/lib/order-status";
 
 export const dynamic = "force-dynamic";
@@ -58,6 +59,14 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                   <p className="text-sm text-stone-500">
                     {o.customerName} · {formatTime(o.createdAt)}
                   </p>
+                  {o.customerPhone && (
+                    <p className="text-sm text-stone-500">
+                      📱{" "}
+                      <a href={waLink(o.customerPhone)} target="_blank" rel="noopener" className="hover:underline">
+                        {formatPhone(o.customerPhone)}
+                      </a>
+                    </p>
+                  )}
                   <p className="text-sm text-stone-500">🧑‍🍳 Barista: {o.baristaName ?? "siapa saja"}</p>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_COLOR[o.status]}`}>
@@ -83,10 +92,29 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                 <span className="font-bold tabular-nums">{rupiah(o.total)}</span>
                 <OrderStatusSelect id={o.id} status={o.status} />
               </div>
+
+              {o.customerPhone && o.status !== "CANCELLED" && (
+                <a
+                  href={waLink(o.customerPhone, readyMessage(o.id, o.customerName, o.location))}
+                  target="_blank"
+                  rel="noopener"
+                  className={`mt-3 flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-semibold transition ${
+                    o.status === "READY"
+                      ? "bg-green-600 text-white hover:bg-green-700"
+                      : "border border-stone-300 text-stone-600 hover:bg-stone-50"
+                  }`}
+                >
+                  💬 Kabari via WhatsApp{o.status === "READY" ? " — pesanan siap" : ""}
+                </a>
+              )}
             </article>
           ))}
         </div>
       )}
     </div>
   );
+}
+
+function readyMessage(orderId: number, name: string, location: string) {
+  return `Halo ${name}, pesanan MK Coffee #${orderId} kamu sudah siap ☕\nSilakan diambil, atau kami antar ke ${location}. Terima kasih!`;
 }

@@ -56,10 +56,10 @@ Skema: `products` (menu), `orders` (pesanan), `order_items` (isi pesanan), dan e
 **Pelanggan** (`/`)
 - Menu per kategori (hanya menu yang tersedia yang tampil)
 - Keranjang tersimpan di browser
-- Checkout dengan nama, lokasi / dept, pilihan barista, dan catatan, lalu pesanan dikirim ke Telegram
+- Checkout dengan nama, no. WhatsApp, lokasi / dept, pilihan barista, dan catatan (data pemesan diingat di browser), lalu pesanan dikirim ke Telegram
 
 **Admin** (`/admin`)
-- **Pesanan:** daftar pesanan aktif atau semua pesanan, ubah status (Menunggu → Diproses → Siap → Selesai / Dibatalkan), refresh otomatis tiap 15 detik
+- **Pesanan:** daftar pesanan aktif atau semua pesanan, ubah status (Menunggu → Diproses → Siap → Selesai / Dibatalkan), refresh otomatis tiap 15 detik; tombol **Kabari via WhatsApp** dengan pesan "pesanan siap" yang sudah terisi
 - **Menu:** tambah, edit, hapus, tandai habis/tersedia, isi URL gambar
 - **Barista:** tambah, edit (nama & spesialisasi), hapus, atur Bertugas / Libur
 

@@ -6,10 +6,21 @@ import { z } from "zod";
 import { db } from "@/db";
 import { baristas, orderItems, orders, products } from "@/db/schema";
 import { rupiah } from "@/lib/format";
+import { formatPhone, normalizePhone, waLink } from "@/lib/phone";
 import { escapeHtml, sendTelegram } from "@/lib/telegram";
 
 const orderSchema = z.object({
   customerName: z.string().trim().min(1, "Nama wajib diisi").max(50),
+  customerPhone: z
+    .string()
+    .transform((s, ctx) => {
+      const phone = normalizePhone(s);
+      if (!phone) {
+        ctx.addIssue({ code: "custom", message: "Nomor WhatsApp tidak valid. Contoh: 0812 3456 7890" });
+        return z.NEVER;
+      }
+      return phone;
+    }),
   location: z.string().trim().min(1, "Lokasi / Dept wajib diisi").max(50),
   baristaId: z.number().int().nullable(), // null = barista siapa saja
   note: z.string().trim().max(200).optional(),
@@ -79,6 +90,7 @@ export async function createOrder(input: z.input<typeof orderSchema>): Promise<C
     .insert(orders)
     .values({
       customerName: data.customerName,
+      customerPhone: data.customerPhone,
       location: data.location,
       baristaId: barista?.id ?? null,
       baristaName: barista?.name ?? null,
@@ -91,6 +103,7 @@ export async function createOrder(input: z.input<typeof orderSchema>): Promise<C
   const text = [
     `☕ <b>PESANAN BARU #${order.id}</b>`,
     `👤 ${escapeHtml(data.customerName)}`,
+    `📱 <a href="${waLink(data.customerPhone)}">${formatPhone(data.customerPhone)}</a>`,
     `📍 ${escapeHtml(data.location)}`,
     `🧑‍🍳 Barista: ${barista ? escapeHtml(barista.name) : "siapa saja"}`,
     ``,
