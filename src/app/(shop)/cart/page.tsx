@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CartView } from "@/components/cart-view";
 import { db } from "@/db";
 import { baristas } from "@/db/schema";
+import { SHOW_BARISTA_PICKER } from "@/lib/features";
 
 export const metadata = { title: "Keranjang · MK Coffee" };
 
@@ -10,11 +11,14 @@ export const metadata = { title: "Keranjang · MK Coffee" };
 export const dynamic = "force-dynamic";
 
 export default async function CartPage() {
-  const activeBaristas = await db
-    .select({ id: baristas.id, name: baristas.name, specialty: baristas.specialty })
-    .from(baristas)
-    .where(eq(baristas.isActive, true))
-    .orderBy(asc(baristas.name));
+  // Daftar kosong = pilihan barista tidak ditampilkan
+  const activeBaristas = SHOW_BARISTA_PICKER
+    ? await db
+        .select({ id: baristas.id, name: baristas.name, specialty: baristas.specialty })
+        .from(baristas)
+        .where(eq(baristas.isActive, true))
+        .orderBy(asc(baristas.name))
+    : [];
 
   return (
     <div>

@@ -67,7 +67,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                       </a>
                     </p>
                   )}
-                  <p className="text-sm text-stone-500">🧑‍🍳 Barista: {o.baristaName ?? "siapa saja"}</p>
+                  {o.baristaName && <p className="text-sm text-stone-500">🧑‍🍳 Barista: {o.baristaName}</p>}
                 </div>
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_COLOR[o.status]}`}>
                   {STATUS_LABEL[o.status]}

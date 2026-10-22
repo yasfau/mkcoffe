@@ -105,7 +105,7 @@ export async function createOrder(input: z.input<typeof orderSchema>): Promise<C
     `👤 ${escapeHtml(data.customerName)}`,
     `📱 <a href="${waLink(data.customerPhone)}">${formatPhone(data.customerPhone)}</a>`,
     `📍 ${escapeHtml(data.location)}`,
-    `🧑‍🍳 Barista: ${barista ? escapeHtml(barista.name) : "siapa saja"}`,
+    barista ? `🧑‍🍳 Barista: ${escapeHtml(barista.name)}` : null,
     ``,
     ...lines.map((l) => `• ${l.quantity}x ${escapeHtml(l.productName)} — ${rupiah(l.price * l.quantity)}`),
     ``,
